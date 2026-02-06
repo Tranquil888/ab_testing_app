@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox, filedialog
 import threading
 import os
 import sys
+import pandas as pd
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
