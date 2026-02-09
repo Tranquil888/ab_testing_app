@@ -465,30 +465,40 @@ class MainWindow:
             messagebox.showwarning(self.translator.t('warning'), self.translator.t('msg_load_and_clean_data_first'))
             return
         
-        stats = self.data_processor.get_probability_stats()
-        sizes = self.data_processor.get_sample_sizes()
-        
-        text = f"{self.translator.t('prob_stats_title')}\n"
-        text += "=" * 50 + "\n\n"
-        
-        text += f"{self.translator.t('prob_stats_overall')}: {stats['overall_conversion']:.6f}\n"
-        text += f"{self.translator.t('prob_stats_control')}: {stats['control_conversion']:.6f}\n"
-        text += f"{self.translator.t('prob_stats_treatment')}: {stats['treatment_conversion']:.6f}\n\n"
-        
-        text += f"{self.translator.t('prob_stats_control_users')}: {sizes.get('n_control', 0)}\n"
-        text += f"{self.translator.t('prob_stats_treatment_users')}: {sizes.get('n_treatment', 0)}\n"
-        text += f"{self.translator.t('prob_stats_control_conversions')}: {int(sizes.get('n_control', 0) * stats['control_conversion'])}\n"
-        text += f"{self.translator.t('prob_stats_treatment_conversions')}: {int(sizes.get('n_treatment', 0) * stats['treatment_conversion'])}\n\n"
-        
-        conversion_diff = stats['treatment_conversion'] - stats['control_conversion']
-        text += f"{self.translator.t('prob_stats_difference')}: {conversion_diff:.6f}\n\n"
-        
-        if abs(conversion_diff) < 0.001:
-            text += "Observation: The difference between conversion rates is very small.\n"
-            text += "Statistical testing is needed to determine significance."
-        
-        self.prob_stats_text.delete(1.0, tk.END)
-        self.prob_stats_text.insert(tk.END, text)
+        try:
+            stats = self.data_processor.get_probability_stats()
+            sizes = self.data_processor.get_sample_sizes()
+            
+            text = f"{self.translator.t('prob_stats_title')}\n"
+            text += "=" * 50 + "\n\n"
+            
+            text += f"{self.translator.t('prob_stats_overall')}: {stats['overall_conversion']:.6f}\n"
+            text += f"{self.translator.t('prob_stats_control')}: {stats['control_conversion']:.6f}\n"
+            text += f"{self.translator.t('prob_stats_treatment')}: {stats['treatment_conversion']:.6f}\n\n"
+            
+            text += f"{self.translator.t('prob_stats_control_users')}: {sizes.get('n_control', 0)}\n"
+            text += f"{self.translator.t('prob_stats_treatment_users')}: {sizes.get('n_treatment', 0)}\n"
+            text += f"{self.translator.t('prob_stats_control_conversions')}: {int(sizes.get('n_control', 0) * stats['control_conversion'])}\n"
+            text += f"{self.translator.t('prob_stats_treatment_conversions')}: {int(sizes.get('n_treatment', 0) * stats['treatment_conversion'])}\n\n"
+            
+            conversion_diff = stats['treatment_conversion'] - stats['control_conversion']
+            text += f"{self.translator.t('prob_stats_difference')}: {conversion_diff:.6f}\n\n"
+            
+            if abs(conversion_diff) < 0.001:
+                text += "Observation: The difference between conversion rates is very small.\n"
+                text += "Statistical testing is needed to determine significance."
+            
+            self.prob_stats_text.delete(1.0, tk.END)
+            self.prob_stats_text.insert(tk.END, text)
+            
+        except KeyError as e:
+            error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+            messagebox.showerror(self.translator.t('error'), error_msg)
+            self.update_status("Error: Invalid data structure")
+        except Exception as e:
+            error_msg = f"Error calculating statistics: {str(e)}"
+            messagebox.showerror(self.translator.t('error'), error_msg)
+            self.update_status("Error calculating statistics")
     
     def run_simulation_threaded(self):
         """Run simulation in background thread."""
@@ -509,8 +519,14 @@ class MainWindow:
             try:
                 results = self.ab_analyzer.run_simulation(iterations)
                 self.root.after(0, self.display_simulation_results, results)
+            except KeyError as e:
+                error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error: Invalid data structure")
             except Exception as e:
-                self.root.after(0, messagebox.showerror, "Error", f"Simulation failed: {str(e)}")
+                error_msg = f"Simulation failed: {str(e)}"
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error during simulation")
             finally:
                 self.root.after(0, self.progress_var.set, 100)
                 self.root.after(0, self.update_status, self.translator.t('status_simulation_complete'))
@@ -529,8 +545,14 @@ class MainWindow:
             try:
                 results = self.ab_analyzer.run_z_test()
                 self.root.after(0, self.display_z_test_results, results)
+            except KeyError as e:
+                error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error: Invalid data structure")
             except Exception as e:
-                self.root.after(0, messagebox.showerror, self.translator.t('error'), f"Z-test failed: {str(e)}")
+                error_msg = f"Z-test failed: {str(e)}"
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error during Z-test")
             finally:
                 self.root.after(0, self.update_status, self.translator.t('status_ztest_complete'))
         
@@ -598,17 +620,26 @@ class MainWindow:
     def show_comparison_plot(self):
         """Show conversion comparison plot."""
         if self.data_processor.df_clean is None:
-            messagebox.showwarning("Warning", "Please load and clean data first")
+            messagebox.showwarning(self.translator.t('warning'), self.translator.t('msg_load_and_clean_data_first'))
             return
         
-        # Clear previous plots
-        for widget in self.plot_frame.winfo_children():
-            widget.destroy()
-        
-        stats = self.data_processor.get_probability_stats()
-        canvas = self.plot_manager.create_conversion_comparison_chart(
-            self.plot_frame, stats)
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        try:
+            # Clear previous plots
+            for widget in self.plot_frame.winfo_children():
+                widget.destroy()
+            
+            stats = self.data_processor.get_probability_stats()
+            canvas = self.plot_manager.create_conversion_comparison_chart(
+                self.plot_frame, stats)
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        except KeyError as e:
+            error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+            messagebox.showerror(self.translator.t('error'), error_msg)
+            self.update_status("Error: Invalid data structure")
+        except Exception as e:
+            error_msg = f"Error creating comparison plot: {str(e)}"
+            messagebox.showerror(self.translator.t('error'), error_msg)
+            self.update_status("Error creating plot")
     
     def save_current_plot(self):
         """Save current plot to file."""
