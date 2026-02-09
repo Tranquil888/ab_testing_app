@@ -220,7 +220,7 @@ class Translator:
                 'menu_generate_report': 'Создать отчет',
                 'menu_about': 'О программе',
                 'menu_switch_to_russian': 'Переключить на русский',
-                'menu_switch_to_english': 'Switch to English',
+                'menu_switch_to_english': 'Переключить на английский',
                 
                 # Tab names
                 'tab_data': 'Данные',
@@ -233,7 +233,7 @@ class Translator:
                 'data_information': 'Информация о данных',
                 'controls': 'Управление',
                 'btn_load_data': 'Загрузить данные',
-                'btn_load_country_data': 'Загрузить доп. данные',
+                'btn_load_country_data': 'Загрузить страны',
                 'btn_clean_data': 'Очистить данные',
                 'btn_show_preview': 'Показать предпросмотр',
                 'current_file': 'Текущий файл:',

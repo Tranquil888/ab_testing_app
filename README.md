@@ -10,7 +10,7 @@ A comprehensive desktop application for analyzing A/B test results using statist
 - **Interactive Visualizations**: Histograms, comparison charts, and time series plots
 - **Comprehensive Reporting**: Generate detailed analysis reports with recommendations
 - **Export Capabilities**: Save results to CSV and plots to PNG/PDF
-- **Multi-language Support**: Complete English and Russian interface translation including all menus, tabs, buttons, labels, status messages, analysis results, reports, data preview windows, and all visualization plot elements (titles, axes, legends, annotations)
+- **Multi-language Support**: Complete English and Russian interface translation
 
 ## Installation
 
@@ -53,10 +53,7 @@ python main.py
 5. **Language Switching**:
    - Click "Language" → "Switch to Russian" to change to Russian interface
    - Click "Language" → "Switch to English" to change back to English
-   - All interface elements, menus, tabs, buttons, labels, status messages, analysis results, reports, data preview windows, and visualization plots will be translated
-   - Language switching applies instantly without requiring application restart
-   - All previously generated analysis content and plots are automatically refreshed in the selected language
-   - Plot elements including titles, axis labels, legends, and annotations are fully translated
+   
 
 ## Data Format
 
