@@ -448,8 +448,17 @@ class MainWindow:
             text = f"{self.translator.t('data_info_total_rows', info['shape'][0])}\n"
             text += f"{self.translator.t('data_info_columns', ', '.join(info['columns']))}\n\n"
             
+            # Add dataset format information
+            if 'detected_format' in info and info['detected_format']:
+                text += f"Dataset Format: {info['detected_format'].upper()}\n"
+                if 'column_mapping' in info and info['column_mapping']:
+                    text += "Column Mapping:\n"
+                    for standard_col, actual_col in info['column_mapping'].items():
+                        text += f"  {standard_col} → {actual_col}\n"
+                text += "\n"
+            
             if self.data_processor.df is not None:
-                misaligned = self.data_processor.get_misaligned_count()
+                misaligned = self.data_processor.count_misaligned()
                 text += f"{self.translator.t('data_info_misaligned', misaligned)}\n\n"
             
             if self.data_processor.df_clean is not None:

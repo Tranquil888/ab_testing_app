@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 from typing import Tuple, Optional
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.column_mapper import ColumnMapper
 
 class DataProcessor:
     """Handles data loading, cleaning, and validation for A/B testing analysis."""
@@ -9,11 +13,18 @@ class DataProcessor:
         self.df = None
         self.df_clean = None
         self.validation_errors = []
+        self.column_mapper = ColumnMapper()
+        self.dataset_format = None
     
     def load_data(self, file_path: str) -> bool:
         """Load CSV data and validate required columns."""
         try:
             self.df = pd.read_csv(file_path)
+            
+            # Detect format and create column mapping
+            self.dataset_format = self.column_mapper.detect_format(self.df)
+            self.column_mapper.create_mapping(self.df, self.dataset_format)
+            
             return self._validate_data()
         except Exception as e:
             self.validation_errors.append(f"Error loading file: {str(e)}")
@@ -34,16 +45,14 @@ class DataProcessor:
             return False
     
     def _validate_data(self) -> bool:
-        """Validate required columns are present."""
+        """Validate required columns are present using column mapping."""
         self.validation_errors.clear()
-        required_columns = ['user_id', 'group', 'landing_page', 'converted']
         
-        missing_cols = [col for col in required_columns if col not in self.df.columns]
-        if missing_cols:
-            self.validation_errors.append(f"Missing required columns: {missing_cols}")
-            return False
+        # Validate using column mapper
+        is_valid, errors = self.column_mapper.validate_mapping(self.df)
+        self.validation_errors.extend(errors)
         
-        return True
+        return is_valid
     
     def get_data_info(self) -> dict:
         """Get basic information about the dataset."""
@@ -54,17 +63,25 @@ class DataProcessor:
             'shape': self.df.shape,
             'columns': list(self.df.columns),
             'missing_values': self.df.isnull().sum().to_dict(),
-            'unique_users': self.df['user_id'].nunique() if 'user_id' in self.df.columns else 0
+            'unique_users': self.df['user_id'].nunique() if 'user_id' in self.df.columns else 0,
+            'detected_format': self.dataset_format,
+            'column_mapping': self.column_mapper.column_mapping
         }
     
-    def get_misaligned_count(self) -> int:
+    def count_misaligned(self) -> int:
         """Count misaligned rows where treatment doesn't match new_page."""
         if self.df is None:
             return 0
         
-        misaligned = ((self.df['group'] == 'treatment') & (self.df['landing_page'] == 'old_page')) | \
-                    ((self.df['group'] == 'control') & (self.df['landing_page'] == 'new_page'))
-        return misaligned.sum()
+        try:
+            # Normalize column names first
+            df_normalized = self.column_mapper.normalize_dataframe(self.df)
+            
+            misaligned = ((df_normalized['group'] == 'treatment') & (df_normalized['landing_page'] == 'old_page')) | \
+                        ((df_normalized['group'] == 'control') & (df_normalized['landing_page'] == 'new_page'))
+            return misaligned.sum()
+        except:
+            return 0
     
     def clean_data(self) -> Tuple[bool, str]:
         """Clean data by removing misaligned rows and duplicates."""
@@ -72,10 +89,13 @@ class DataProcessor:
             return False, "No data loaded"
         
         try:
+            # Normalize column names first
+            df_normalized = self.column_mapper.normalize_dataframe(self.df)
+            
             # Remove misaligned rows
-            misaligned = ((self.df['group'] == 'treatment') & (self.df['landing_page'] == 'old_page')) | \
-                        ((self.df['group'] == 'control') & (self.df['landing_page'] == 'new_page'))
-            self.df_clean = self.df[~misaligned].copy()
+            misaligned = ((df_normalized['group'] == 'treatment') & (df_normalized['landing_page'] == 'old_page')) | \
+                        ((df_normalized['group'] == 'control') & (df_normalized['landing_page'] == 'new_page'))
+            self.df_clean = df_normalized[~misaligned].copy()
             
             # Remove duplicate user_ids
             duplicate_mask = self.df_clean['user_id'].duplicated(keep=False)
@@ -142,3 +162,17 @@ class DataProcessor:
             counts['convert_new'] = (self.df_clean.loc[new_mask, 'converted'] == 1).sum()
         
         return counts
+    
+    def get_format_info(self) -> dict:
+        """Get detailed information about the detected dataset format."""
+        if self.df is None:
+            return {}
+        
+        return self.column_mapper.get_format_info()
+    
+    def get_manual_mapping_suggestions(self) -> dict:
+        """Get suggestions for manual column mapping."""
+        if self.df is None:
+            return {}
+        
+        return self.column_mapper.suggest_manual_mapping(self.df)
