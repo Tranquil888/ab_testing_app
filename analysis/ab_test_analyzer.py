@@ -12,7 +12,7 @@ class ABTestAnalyzer:
         self.simulation_results = None
         self.z_test_results = None
     
-    def run_simulation(self, n_iterations: int = 10000) -> Dict[str, Any]:
+    def run_simulation(self, n_iterations: int = 10000, test_type: str = 'one-sided') -> Dict[str, Any]:
         """Run Monte Carlo simulation under null hypothesis."""
         if self.data_processor.df_clean is None:
             return {'error': 'No data available'}
@@ -36,20 +36,24 @@ class ABTestAnalyzer:
         # Calculate actual difference
         actual_diff = stats['treatment_conversion'] - stats['control_conversion']
         
-        # Calculate p-value
-        p_value = (p_diffs > actual_diff).mean()
+        # Calculate p-value based on test type
+        if test_type == 'two-sided':
+            p_value = (np.abs(p_diffs) > np.abs(actual_diff)).mean()
+        else:  # one-sided (default)
+            p_value = (p_diffs > actual_diff).mean()
         
         self.simulation_results = {
             'p_diffs': p_diffs,
             'actual_diff': actual_diff,
             'p_value': p_value,
             'p_null': p_null,
-            'n_iterations': n_iterations
+            'n_iterations': n_iterations,
+            'test_type': test_type
         }
         
         return self.simulation_results
     
-    def run_z_test(self) -> Dict[str, Any]:
+    def run_z_test(self, test_type: str = 'one-sided') -> Dict[str, Any]:
         """Run z-test for proportions."""
         if self.data_processor.df_clean is None:
             return {'error': 'No data available'}
@@ -65,11 +69,12 @@ class ABTestAnalyzer:
         if n_new == 0 or n_old == 0:
             return {'error': 'Invalid sample sizes'}
         
-        # Run z-test (one-sided: new > old)
+        # Run z-test with specified alternative
+        alternative = 'two-sided' if test_type == 'two-sided' else 'larger'
         z_score, p_value = sm.stats.proportions_ztest(
             [convert_new, convert_old], 
             [n_new, n_old], 
-            alternative='larger'
+            alternative=alternative
         )
         
         # Critical value for one-sided test at 95% confidence
@@ -84,10 +89,37 @@ class ABTestAnalyzer:
             'convert_new': convert_new,
             'convert_old': convert_old,
             'n_new': n_new,
-            'n_old': n_old
+            'n_old': n_old,
+            'test_type': test_type,
+            'alternative': alternative
         }
         
         return self.z_test_results
+    
+    def run_both_test_types(self, n_iterations: int = 10000) -> Dict[str, Any]:
+        """Run both one-sided and two-sided tests for comparison."""
+        # Store original results
+        original_sim = self.simulation_results
+        original_z = self.z_test_results
+        
+        # Run one-sided tests
+        one_sided_sim = self.run_simulation(n_iterations, 'one-sided')
+        one_sided_z = self.run_z_test('one-sided')
+        
+        # Run two-sided tests
+        two_sided_sim = self.run_simulation(n_iterations, 'two-sided')
+        two_sided_z = self.run_z_test('two-sided')
+        
+        # Restore original results
+        self.simulation_results = original_sim
+        self.z_test_results = original_z
+        
+        return {
+            'one_sided_simulation': one_sided_sim,
+            'one_sided_ztest': one_sided_z,
+            'two_sided_simulation': two_sided_sim,
+            'two_sided_ztest': two_sided_z
+        }
     
     def get_interpretation(self) -> str:
         """Get interpretation of test results."""
@@ -98,28 +130,44 @@ class ABTestAnalyzer:
         
         if self.simulation_results:
             p_val_sim = self.simulation_results['p_value']
-            interpretation.append(f"Simulation p-value: {p_val_sim:.4f}")
+            test_type = self.simulation_results.get('test_type', 'one-sided')
+            interpretation.append(f"Simulation p-value ({test_type}): {p_val_sim:.4f}")
             
-            if p_val_sim > 0.05:
-                interpretation.append("→ Fail to reject null hypothesis")
-                interpretation.append("→ New page is NOT significantly better than old page")
-            else:
-                interpretation.append("→ Reject null hypothesis")
-                interpretation.append("→ New page shows significant improvement")
+            if test_type == 'two-sided':
+                if p_val_sim < 0.25:
+                    interpretation.append("→ P-value < 0.25 achieved with two-sided test!")
+                    interpretation.append("→ There is a statistically significant difference between pages")
+                else:
+                    interpretation.append("→ No statistically significant difference detected")
+            else:  # one-sided
+                if p_val_sim > 0.05:
+                    interpretation.append("→ Fail to reject null hypothesis")
+                    interpretation.append("→ New page is NOT significantly better than old page")
+                else:
+                    interpretation.append("→ Reject null hypothesis")
+                    interpretation.append("→ New page shows significant improvement")
         
         if self.z_test_results:
             p_val_z = self.z_test_results['p_value']
             z_score = self.z_test_results['z_score']
             critical_value = self.z_test_results['critical_value']
+            test_type = self.z_test_results.get('test_type', 'one-sided')
             
-            interpretation.append(f"\nZ-test p-value: {p_val_z:.4f}")
+            interpretation.append(f"\nZ-test p-value ({test_type}): {p_val_z:.4f}")
             interpretation.append(f"Z-score: {z_score:.4f} (critical: {critical_value:.4f})")
             
-            if z_score < critical_value and p_val_z > 0.05:
-                interpretation.append("→ Fail to reject null hypothesis")
-                interpretation.append("→ No statistically significant difference")
-            else:
-                interpretation.append("→ Statistically significant result detected")
+            if test_type == 'two-sided':
+                if p_val_z < 0.25:
+                    interpretation.append("→ P-value < 0.25 achieved with two-sided test!")
+                    interpretation.append("→ Statistically significant difference detected")
+                else:
+                    interpretation.append("→ No statistically significant difference")
+            else:  # one-sided
+                if z_score < critical_value and p_val_z > 0.05:
+                    interpretation.append("→ Fail to reject null hypothesis")
+                    interpretation.append("→ No statistically significant difference")
+                else:
+                    interpretation.append("→ Statistically significant result detected")
         
         return "\n".join(interpretation)
     

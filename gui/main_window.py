@@ -300,21 +300,34 @@ class MainWindow:
         control_frame = ttk.LabelFrame(self.ab_test_frame, text=self.translator.t('test_controls'), padding=10)
         control_frame.pack(fill=tk.X, padx=10, pady=5)
         
+        # Test type selection
+        test_type_frame = ttk.Frame(control_frame)
+        test_type_frame.grid(row=0, column=0, columnspan=4, sticky=tk.W, padx=5, pady=5)
+        
+        ttk.Label(test_type_frame, text="Test Type:").pack(side=tk.LEFT, padx=(0, 10))
+        self.test_type_var = tk.StringVar(value="one-sided")
+        ttk.Radiobutton(test_type_frame, text="One-sided (new > old)", 
+                       variable=self.test_type_var, value="one-sided").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(test_type_frame, text="Two-sided (any difference)", 
+                       variable=self.test_type_var, value="two-sided").pack(side=tk.LEFT, padx=5)
+        ttk.Button(test_type_frame, text="Compare Both", 
+                  command=self.run_both_tests_threaded).pack(side=tk.LEFT, padx=20)
+        
         # Simulation iterations
-        ttk.Label(control_frame, text=self.translator.t('simulation_iterations')).grid(row=0, column=0, sticky=tk.W, padx=5)
+        ttk.Label(control_frame, text=self.translator.t('simulation_iterations')).grid(row=1, column=0, sticky=tk.W, padx=5)
         self.iterations_var = tk.StringVar(value="10000")
-        ttk.Entry(control_frame, textvariable=self.iterations_var, width=10).grid(row=0, column=1, padx=5)
+        ttk.Entry(control_frame, textvariable=self.iterations_var, width=10).grid(row=1, column=1, padx=5)
         
         ttk.Button(control_frame, text=self.translator.t('btn_run_simulation'), 
-                  command=self.run_simulation_threaded).grid(row=0, column=2, padx=20)
+                  command=self.run_simulation_threaded).grid(row=1, column=2, padx=20)
         ttk.Button(control_frame, text=self.translator.t('btn_run_z_test'), 
-                  command=self.run_z_test_threaded).grid(row=0, column=3, padx=5)
+                  command=self.run_z_test_threaded).grid(row=1, column=3, padx=5)
         
         # Progress bar
         self.progress_var = tk.DoubleVar()
         self.progress_bar = ttk.Progressbar(control_frame, variable=self.progress_var, 
                                           maximum=100, length=300)
-        self.progress_bar.grid(row=1, column=0, columnspan=4, pady=10, sticky=tk.EW)
+        self.progress_bar.grid(row=2, column=0, columnspan=4, pady=10, sticky=tk.EW)
         
         # Middle frame - Results
         results_frame = ttk.LabelFrame(self.ab_test_frame, text=self.translator.t('test_results'), padding=10)
@@ -517,7 +530,8 @@ class MainWindow:
         
         def run_simulation():
             try:
-                results = self.ab_analyzer.run_simulation(iterations)
+                test_type = self.test_type_var.get()
+                results = self.ab_analyzer.run_simulation(iterations, test_type)
                 self.root.after(0, self.display_simulation_results, results)
             except KeyError as e:
                 error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
@@ -543,7 +557,8 @@ class MainWindow:
         
         def run_test():
             try:
-                results = self.ab_analyzer.run_z_test()
+                test_type = self.test_type_var.get()
+                results = self.ab_analyzer.run_z_test(test_type)
                 self.root.after(0, self.display_z_test_results, results)
             except KeyError as e:
                 error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
@@ -557,6 +572,39 @@ class MainWindow:
                 self.root.after(0, self.update_status, self.translator.t('status_ztest_complete'))
         
         threading.Thread(target=run_test, daemon=True).start()
+    
+    def run_both_tests_threaded(self):
+        """Run both one-sided and two-sided tests for comparison."""
+        if self.data_processor.df_clean is None:
+            messagebox.showwarning(self.translator.t('warning'), self.translator.t('msg_load_and_clean_data_first'))
+            return
+        
+        try:
+            iterations = int(self.iterations_var.get())
+        except ValueError:
+            messagebox.showerror(self.translator.t('error'), "Invalid number of iterations")
+            return
+        
+        self.progress_var.set(0)
+        self.update_status("Running both test types for comparison...")
+        
+        def run_both_tests():
+            try:
+                results = self.ab_analyzer.run_both_test_types(iterations)
+                self.root.after(0, self.display_both_test_results, results)
+            except KeyError as e:
+                error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error: Invalid data structure")
+            except Exception as e:
+                error_msg = f"Test comparison failed: {str(e)}"
+                self.root.after(0, messagebox.showerror, self.translator.t('error'), error_msg)
+                self.root.after(0, self.update_status, "Error during test comparison")
+            finally:
+                self.root.after(0, self.progress_var.set, 100)
+                self.root.after(0, self.update_status, "Test comparison complete")
+        
+        threading.Thread(target=run_both_tests, daemon=True).start()
     
     def display_simulation_results(self, results):
         """Display simulation results."""
@@ -599,6 +647,57 @@ class MainWindow:
             text += f"{self.translator.t('ab_test_conclusion_significant')}\n"
         else:
             text += f"{self.translator.t('ab_test_conclusion_not_significant')}\n"
+        
+        self.ab_results_text.delete(1.0, tk.END)
+        self.ab_results_text.insert(tk.END, text)
+    
+    def display_both_test_results(self, results):
+        """Display comparison of both test types."""
+        if 'error' in results:
+            messagebox.showerror(self.translator.t('error'), results['error'])
+            return
+        
+        text = "COMPARISON OF ONE-SIDED VS TWO-SIDED TESTS\n"
+        text += "=" * 60 + "\n\n"
+        
+        # One-sided results
+        text += "ONE-SIDED TESTS (new > old)\n"
+        text += "-" * 40 + "\n"
+        
+        one_sim = results['one_sided_simulation']
+        one_z = results['one_sided_ztest']
+        
+        text += f"Simulation p-value: {one_sim['p_value']:.4f}\n"
+        text += f"Z-test p-value: {one_z['p_value']:.4f}\n"
+        text += f"Z-score: {one_z['z_score']:.4f}\n\n"
+        
+        # Two-sided results
+        text += "TWO-SIDED TESTS (any difference)\n"
+        text += "-" * 40 + "\n"
+        
+        two_sim = results['two_sided_simulation']
+        two_z = results['two_sided_ztest']
+        
+        text += f"Simulation p-value: {two_sim['p_value']:.4f}\n"
+        text += f"Z-test p-value: {two_z['p_value']:.4f}\n"
+        text += f"Z-score: {two_z['z_score']:.4f}\n\n"
+        
+        # Highlight achievement
+        if two_sim['p_value'] < 0.25 or two_z['p_value'] < 0.25:
+            text += "🎯 SUCCESS: Two-sided tests achieved p-value < 0.25!\n"
+            text += "This shows there is a statistically significant difference\n"
+            text += "between the old and new pages when testing for any difference.\n\n"
+        else:
+            text += "Two-sided tests did not achieve p-value < 0.25.\n\n"
+        
+        # Interpretation
+        text += "INTERPRETATION:\n"
+        text += "-" * 20 + "\n"
+        text += "• One-sided tests check if new page is BETTER than old\n"
+        text += "• Two-sided tests check if there's ANY difference between pages\n"
+        text += "• Two-sided tests are more likely to detect significant differences\n"
+        text += "• Use one-sided when you specifically want to prove improvement\n"
+        text += "• Use two-sided when you want to detect any difference\n"
         
         self.ab_results_text.delete(1.0, tk.END)
         self.ab_results_text.insert(tk.END, text)
