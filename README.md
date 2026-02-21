@@ -137,8 +137,6 @@ ab_testing_app/
 - `pandas`: Data manipulation and analysis
 - `numpy`: Numerical computations
 - `matplotlib`: Data visualization
-- `statsmodels`: Statistical modeling and testing
-- `scipy`: Scientific computing
 - `tkinter`: GUI framework (built-in with Python)
 
 ## License

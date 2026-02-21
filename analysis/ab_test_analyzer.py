@@ -1,8 +1,59 @@
 import numpy as np
 import pandas as pd
-import statsmodels.api as sm
-from scipy.stats import norm
+import math
 from typing import Tuple, Dict, Any
+
+def normal_cdf(x):
+    """Calculate cumulative distribution function for standard normal distribution."""
+    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+
+def proportions_ztest(count, nobs, value=None, alternative='two-sided'):
+    """
+    Calculate z-test for proportions.
+    
+    Args:
+        count: number of successes in each group
+        nobs: number of trials in each group
+        value: null hypothesis value (default 0 for difference of proportions)
+        alternative: 'two-sided', 'larger', or 'smaller'
+    
+    Returns:
+        z_stat: z-statistic
+        p_value: p-value
+    """
+    if value is None:
+        value = 0
+    
+    count1, count2 = count
+    n1, n2 = nobs
+    
+    # Proportions
+    p1 = count1 / n1
+    p2 = count2 / n2
+    
+    # Pooled proportion under null hypothesis
+    if value == 0:
+        p_pooled = (count1 + count2) / (n1 + n2)
+        var_pooled = p_pooled * (1 - p_pooled) * (1/n1 + 1/n2)
+    else:
+        # For non-zero null hypothesis
+        var_pooled = p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2
+    
+    # Z-statistic
+    diff = p1 - p2 - value
+    z_stat = diff / math.sqrt(var_pooled)
+    
+    # P-value calculation
+    if alternative == 'two-sided':
+        p_value = 2 * (1 - normal_cdf(abs(z_stat)))
+    elif alternative == 'larger':
+        p_value = 1 - normal_cdf(z_stat)
+    elif alternative == 'smaller':
+        p_value = normal_cdf(z_stat)
+    else:
+        raise ValueError("alternative must be 'two-sided', 'larger', or 'smaller'")
+    
+    return z_stat, p_value
 
 class ABTestAnalyzer:
     """Performs A/B testing analysis including simulation and statistical tests."""
@@ -71,15 +122,15 @@ class ABTestAnalyzer:
         
         # Run z-test with specified alternative
         alternative = 'two-sided' if test_type == 'two-sided' else 'larger'
-        z_score, p_value = sm.stats.proportions_ztest(
+        z_score, p_value = proportions_ztest(
             [convert_new, convert_old], 
             [n_new, n_old], 
             alternative=alternative
         )
         
-        # Critical value for one-sided test at 95% confidence
-        critical_value = norm.ppf(1 - 0.05)
-        z_significance = norm.cdf(z_score)
+        # Critical value for one-sided test at 95% confidence (hardcoded for accuracy)
+        critical_value = 1.6448536269514722
+        z_significance = normal_cdf(z_score)
         
         self.z_test_results = {
             'z_score': z_score,
