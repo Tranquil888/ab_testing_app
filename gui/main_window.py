@@ -648,9 +648,11 @@ class MainWindow:
         text += f"{self.translator.t('ab_test_z_score', results['z_score'])}\n"
         text += f"{self.translator.t('ab_test_p_value', results['p_value'])}\n\n"
         
-        text += f"Conversions:\n"
-        text += f"  New Page: {results['convert_new']:,} / {results['n_new']:,}\n"
-        text += f"  Old Page: {results['convert_old']:,} / {results['n_old']:,}\n\n"
+        text += f"{self.translator.t('results_conversions')}\n"
+        new_page_conv_str = f"{results['convert_new']:,} / {results['n_new']:,}"
+        old_page_conv_str = f"{results['convert_old']:,} / {results['n_old']:,}"
+        text += f"  {self.translator.t('results_new_page_conversions', new_page_conv_str)}\n"
+        text += f"  {self.translator.t('results_old_page_conversions', old_page_conv_str)}\n\n"
         
         if results['p_value'] < 0.05:
             text += f"{self.translator.t('ab_test_conclusion_significant')}\n"
@@ -666,47 +668,46 @@ class MainWindow:
             messagebox.showerror(self.translator.t('error'), results['error'])
             return
         
-        text = "COMPARISON OF ONE-SIDED VS TWO-SIDED TESTS\n"
+        text = f"{self.translator.t('comparison_title')}\n"
         text += "=" * 60 + "\n\n"
         
         # One-sided results
-        text += "ONE-SIDED TESTS (new > old)\n"
+        text += f"{self.translator.t('one_sided_tests_title')}\n"
         text += "-" * 40 + "\n"
         
         one_sim = results['one_sided_simulation']
         one_z = results['one_sided_ztest']
         
-        text += f"Simulation p-value: {one_sim['p_value']:.4f}\n"
-        text += f"Z-test p-value: {one_z['p_value']:.4f}\n"
-        text += f"Z-score: {one_z['z_score']:.4f}\n\n"
+        text += f"{self.translator.t('simulation_p_value', one_sim['p_value'])}\n"
+        text += f"{self.translator.t('z_test_p_value', one_z['p_value'])}\n"
+        text += f"{self.translator.t('z_score', one_z['z_score'])}\n\n"
         
         # Two-sided results
-        text += "TWO-SIDED TESTS (any difference)\n"
+        text += f"{self.translator.t('two_sided_tests_title')}\n"
         text += "-" * 40 + "\n"
         
         two_sim = results['two_sided_simulation']
         two_z = results['two_sided_ztest']
         
-        text += f"Simulation p-value: {two_sim['p_value']:.4f}\n"
-        text += f"Z-test p-value: {two_z['p_value']:.4f}\n"
-        text += f"Z-score: {two_z['z_score']:.4f}\n\n"
+        text += f"{self.translator.t('simulation_p_value', two_sim['p_value'])}\n"
+        text += f"{self.translator.t('z_test_p_value', two_z['p_value'])}\n"
+        text += f"{self.translator.t('z_score', two_z['z_score'])}\n\n"
         
         # Highlight achievement
         if two_sim['p_value'] < 0.25 or two_z['p_value'] < 0.25:
-            text += "🎯 SUCCESS: Two-sided tests achieved p-value < 0.25!\n"
-            text += "This shows there is a statistically significant difference\n"
-            text += "between the old and new pages when testing for any difference.\n\n"
+            text += f"{self.translator.t('success_message', '0.25')}\n"
+            text += f"{self.translator.t('statistically_significant_difference')}\n\n"
         else:
             text += "Two-sided tests did not achieve p-value < 0.25.\n\n"
         
         # Interpretation
-        text += "INTERPRETATION:\n"
+        text += f"{self.translator.t('interpretation_title')}\n"
         text += "-" * 20 + "\n"
-        text += "• One-sided tests check if new page is BETTER than old\n"
-        text += "• Two-sided tests check if there's ANY difference between pages\n"
-        text += "• Two-sided tests are more likely to detect significant differences\n"
-        text += "• Use one-sided when you specifically want to prove improvement\n"
-        text += "• Use two-sided when you want to detect any difference\n"
+        text += f"{self.translator.t('interpretation_one_sided_check')}\n"
+        text += f"{self.translator.t('interpretation_two_sided_check')}\n"
+        text += f"{self.translator.t('interpretation_two_sided_more_likely')}\n"
+        text += f"{self.translator.t('interpretation_one_sided_prove_improvement')}\n"
+        text += f"{self.translator.t('interpretation_two_sided_detect_difference')}\n"
         
         self.ab_results_text.delete(1.0, tk.END)
         self.ab_results_text.insert(tk.END, text)
@@ -778,29 +779,37 @@ class MainWindow:
         
         text += f"{self.translator.t('report_data_overview')}\n"
         text += "-" * 30 + "\n"
-        text += f"Total Users: {summary['total_users']:,}\n"
-        text += f"Unique Users: {summary['unique_users']:,}\n"
-        text += f"New Page Sample Size: {summary['new_page_sample_size']:,}\n"
-        text += f"Old Page Sample Size: {summary['old_page_sample_size']:,}\n\n"
+        text += f"{self.translator.t('results_total_users', f'{summary['total_users']:,}')}\n"
+        text += f"{self.translator.t('results_unique_users', f'{summary['unique_users']:,}')}\n"
+        text += f"{self.translator.t('results_new_page_sample', f'{summary['new_page_sample_size']:,}')}\n"
+        text += f"{self.translator.t('results_old_page_sample', f'{summary['old_page_sample_size']:,}')}\n\n"
         
         text += f"{self.translator.t('report_statistical_analysis')}\n"
         text += "-" * 30 + "\n"
-        text += f"Overall Conversion Rate: {summary['overall_conversion_rate']:.4f}\n"
-        text += f"Control Conversion Rate: {summary['control_conversion_rate']:.4f}\n"
-        text += f"Treatment Conversion Rate: {summary['treatment_conversion_rate']:.4f}\n"
-        text += f"Conversion Difference: {summary['conversion_difference']:.6f}\n\n"
+        overall_conv_str = f"{summary['overall_conversion_rate']:.4f}"
+        control_conv_str = f"{summary['control_conversion_rate']:.4f}"
+        treatment_conv_str = f"{summary['treatment_conversion_rate']:.4f}"
+        conv_diff_str = f"{summary['conversion_difference']:.6f}"
+        text += f"{self.translator.t('results_overall_conversion', overall_conv_str)}\n"
+        text += f"{self.translator.t('results_control_conversion', control_conv_str)}\n"
+        text += f"{self.translator.t('results_treatment_conversion', treatment_conv_str)}\n"
+        text += f"{self.translator.t('results_conversion_difference', conv_diff_str)}\n\n"
         
         if self.ab_analyzer.simulation_results:
             text += f"{self.translator.t('ab_test_simulation_results')}\n"
             text += "-" * 30 + "\n"
-            text += f"P-value: {self.ab_analyzer.simulation_results['p_value']:.6f}\n"
-            text += f"Actual Difference: {self.ab_analyzer.simulation_results['actual_diff']:.6f}\n\n"
+            p_val_str = f"{self.ab_analyzer.simulation_results['p_value']:.6f}"
+            diff_str = f"{self.ab_analyzer.simulation_results['actual_diff']:.6f}"
+            text += f"{self.translator.t('results_p_value', p_val_str)}\n"
+            text += f"{self.translator.t('results_actual_difference', diff_str)}\n\n"
         
         if self.ab_analyzer.z_test_results:
             text += f"{self.translator.t('ab_test_z_test_results')}\n"
             text += "-" * 30 + "\n"
-            text += f"Z-score: {self.ab_analyzer.z_test_results['z_score']:.6f}\n"
-            text += f"P-value: {self.ab_analyzer.z_test_results['p_value']:.6f}\n\n"
+            z_score_str = f"{self.ab_analyzer.z_test_results['z_score']:.6f}"
+            p_val_str2 = f"{self.ab_analyzer.z_test_results['p_value']:.6f}"
+            text += f"{self.translator.t('results_z_score', z_score_str)}\n"
+            text += f"{self.translator.t('results_p_value', p_val_str2)}\n\n"
         
         text += f"{self.translator.t('report_recommendations')}\n"
         text += "-" * 30 + "\n"

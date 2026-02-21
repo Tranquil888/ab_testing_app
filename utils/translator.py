@@ -123,6 +123,22 @@ class Translator:
                 'data_info_converted': 'Converted: {} users ({:.2%})',
                 'data_info_not_converted': 'Not converted: {} users ({:.2%})',
                 
+                # Results page specific labels
+                'results_total_users': 'Total Users: {}',
+                'results_unique_users': 'Unique Users: {}',
+                'results_new_page_sample': 'New Page Sample Size: {}',
+                'results_old_page_sample': 'Old Page Sample Size: {}',
+                'results_overall_conversion': 'Overall Conversion Rate: {}',
+                'results_control_conversion': 'Control Conversion Rate: {}',
+                'results_treatment_conversion': 'Treatment Conversion Rate: {}',
+                'results_conversion_difference': 'Conversion Difference: {}',
+                'results_p_value': 'P-value: {}',
+                'results_actual_difference': 'Actual Difference: {}',
+                'results_z_score': 'Z-score: {}',
+                'results_conversions': 'Conversions:',
+                'results_new_page_conversions': 'New Page: {}',
+                'results_old_page_conversions': 'Old Page: {}',
+                
                 # Probability statistics text
                 'prob_stats_title': 'Probability Analysis Results',
                 'prob_stats_overall': 'Overall Conversion Rate',
@@ -317,6 +333,40 @@ class Translator:
                 'data_info_new_page': 'Новая страница: {} пользователей',
                 'data_info_converted': 'Сконвертировано: {} пользователей ({:.2%})',
                 'data_info_not_converted': 'Не сконвертировано: {} пользователей ({:.2%})',
+                
+                # Results page specific labels
+                'results_total_users': 'Всего пользователей: {}',
+                'results_unique_users': 'Уникальных пользователей: {}',
+                'results_new_page_sample': 'Размер выборки новой страницы: {}',
+                'results_old_page_sample': 'Размер выборки старой страницы: {}',
+                'results_overall_conversion': 'Общая конверсия: {}',
+                'results_control_conversion': 'Конверсия контрольной группы: {}',
+                'results_treatment_conversion': 'Конверсия тестовой группы: {}',
+                'results_conversion_difference': 'Разница конверсии: {}',
+                'results_p_value': 'P-значение: {}',
+                'results_actual_difference': 'Фактическая разница: {}',
+                'results_z_score': 'Z-оценка: {}',
+                'results_conversions': 'Конверсии:',
+                'results_new_page_conversions': 'Новая страница: {}',
+                'results_old_page_conversions': 'Старая страница: {}',
+                
+                # A/B Test page - Comparison of One-sided vs Two-sided Tests
+                'comparison_title': 'СРАВНЕНИЕ ОДНОСТОРОННИХ И ДВУСТОРОННИХ ТЕСТОВ',
+                'one_sided_tests_title': 'ОДНОСТОРОННИЕ ТЕСТЫ (новый > старый)',
+                'two_sided_tests_title': 'ДВУСТОРОННИЕ ТЕСТЫ (любая разница)',
+                'simulation_p_value': 'P-значение симуляции: {}',
+                'z_test_p_value': 'P-значение Z-теста: {}',
+                'z_score': 'Z-показатель: {}',
+                'success_message': '🎯 УСПЕХ: Двусторонние тесты достигли p-значения < {}!',
+                'statistically_significant_difference': 'Это показывает статистически значимую разницу между старой и новой страницами при проверке любой разницы.',
+                
+                # A/B Test page - Interpretation
+                'interpretation_title': 'ИНТЕРПРЕТАЦИЯ:',
+                'interpretation_one_sided_check': '• Односторонние тесты проверяют, ЛУЧШЕ ли новая страница старой',
+                'interpretation_two_sided_check': '• Двусторонние тесты проверяют наличие ЛЮБОЙ разницы между страницами',
+                'interpretation_two_sided_more_likely': '• Двусторонние тесты с большей вероятностью обнаружат значимые различия',
+                'interpretation_one_sided_prove_improvement': '• Используйте односторонний тест, когда вы специально хотите доказать улучшение',
+                'interpretation_two_sided_detect_difference': '• Используйте двусторонний тест, когда вы хотите обнаружить любую разницу',
                 
                 # Probability statistics text
                 'prob_stats_title': 'Результаты вероятностного анализа',
