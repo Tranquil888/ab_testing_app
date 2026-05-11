@@ -50,7 +50,7 @@ def load_data(file_path: str) -> bool:
 
         return _validate_data()
     except Exception as e:
-        STATE['validation_errors'].append(f"Error loading file: {str(e)}")
+        STATE['validation_errors'].append(f"Ошибка загрузки файла: {str(e)}")
         return False
 
 
@@ -58,14 +58,14 @@ def load_country_data(file_path: str) -> bool:
     """Загрузить данные о странах и объединить с основным набором данных."""
     try:
         if STATE['df_clean'] is None:
-            STATE['validation_errors'].append("Please load and clean main data first")
+            STATE['validation_errors'].append("Сначала загрузите и очистите основные данные")
             return False
 
         country_df = pd.read_csv(file_path)
         STATE['df_clean'] = pd.merge(STATE['df_clean'], country_df, on=['user_id'])
         return True
     except Exception as e:
-        STATE['validation_errors'].append(f"Error loading country data: {str(e)}")
+        STATE['validation_errors'].append(f"Ошибка загрузки данных о странах: {str(e)}")
         return False
 
 
@@ -116,7 +116,7 @@ def clean_data() -> Tuple[bool, str]:
     """Очистить данные: удалить несоответствия и дубликаты."""
     df = STATE['df']
     if df is None:
-        return False, "No data loaded"
+        return False, "Данные не загружены"
 
     try:
         df_normalized = column_mapper.normalize_dataframe(df, STATE['column_mapping'])
@@ -132,9 +132,9 @@ def clean_data() -> Tuple[bool, str]:
             df_clean = df_clean[~duplicate_mask | (~df_clean['user_id'].duplicated(keep='first'))]
 
         STATE['df_clean'] = df_clean
-        return True, f"Data cleaned successfully. Shape: {df_clean.shape}"
+        return True, f"Данные успешно очищены. Размерность: {df_clean.shape}"
     except Exception as e:
-        return False, f"Error cleaning data: {str(e)}"
+        return False, f"Ошибка очистки данных: {str(e)}"
 
 
 def get_probability_stats() -> dict:

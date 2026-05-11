@@ -73,7 +73,7 @@ def create_mapping(df: pd.DataFrame, format_type: Optional[str] = None) -> Tuple
         if found_col:
             mapping[standard_col] = found_col
         else:
-            errors.append(f"Could not find column for {standard_col}")
+            errors.append(f"Не удалось найти столбец для {standard_col}")
 
     return mapping, errors
 
@@ -84,9 +84,9 @@ def validate_mapping(df: pd.DataFrame, mapping: Dict[str, str]) -> Tuple[bool, L
 
     for col in REQUIRED_COLUMNS:
         if col not in mapping:
-            errors.append(f"Missing required column: {col}")
+            errors.append(f"Отсутствует обязательный столбец: {col}")
         elif mapping[col] not in df.columns:
-            errors.append(f"Mapped column '{mapping[col]}' not found in dataset")
+            errors.append(f"Сопоставленный столбец '{mapping[col]}' не найден в наборе данных")
 
     return len(errors) == 0, errors
 
@@ -94,7 +94,7 @@ def validate_mapping(df: pd.DataFrame, mapping: Dict[str, str]) -> Tuple[bool, L
 def normalize_dataframe(df: pd.DataFrame, mapping: Dict[str, str]) -> pd.DataFrame:
     """Нормализовать имена столбцов согласно сопоставлению."""
     if not mapping:
-        raise ValueError("No column mapping available. Call create_mapping() first.")
+        raise ValueError("Сопоставление столбцов отсутствует. Сначала вызовите create_mapping().")
 
     df_normalized = df.copy()
     reverse_mapping = {v: k for k, v in mapping.items()}

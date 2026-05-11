@@ -80,7 +80,7 @@ def proportions_ztest(count, nobs, value=None, alternative='two-sided'):
 def run_simulation(n_iterations: int = 10000, test_type: str = 'one-sided') -> Dict[str, Any]:
     """Запустить симуляцию Монте-Карло при нулевой гипотезе."""
     if not data_processor.has_clean_data():
-        return {'error': 'No data available'}
+        return {'error': 'Данные недоступны'}
 
     stats = data_processor.get_probability_stats()
     sizes = data_processor.get_sample_sizes()
@@ -90,7 +90,7 @@ def run_simulation(n_iterations: int = 10000, test_type: str = 'one-sided') -> D
     n_old = sizes.get('n_old', 0)
 
     if n_new == 0 or n_old == 0:
-        return {'error': 'Invalid sample sizes'}
+        return {'error': 'Некорректные размеры выборок'}
 
     np.random.seed(42)
     p_diffs = (
@@ -120,7 +120,7 @@ def run_simulation(n_iterations: int = 10000, test_type: str = 'one-sided') -> D
 def run_z_test(test_type: str = 'one-sided') -> Dict[str, Any]:
     """Запустить z-тест для пропорций."""
     if not data_processor.has_clean_data():
-        return {'error': 'No data available'}
+        return {'error': 'Данные недоступны'}
 
     counts = data_processor.get_conversion_counts()
     sizes = data_processor.get_sample_sizes()
@@ -131,7 +131,7 @@ def run_z_test(test_type: str = 'one-sided') -> Dict[str, Any]:
     n_old = sizes.get('n_old', 0)
 
     if n_new == 0 or n_old == 0:
-        return {'error': 'Invalid sample sizes'}
+        return {'error': 'Некорректные размеры выборок'}
 
     alternative = 'two-sided' if test_type == 'two-sided' else 'larger'
     z_score, p_value = proportions_ztest(
@@ -185,28 +185,28 @@ def get_interpretation() -> str:
     z_test = STATE['z_test_results']
 
     if sim is None and z_test is None:
-        return "No test results available. Please run analysis first."
+        return "Результаты тестов отсутствуют. Сначала запустите анализ."
 
     interpretation = []
 
     if sim:
         p_val_sim = sim['p_value']
         test_type = sim.get('test_type', 'one-sided')
-        interpretation.append(f"Simulation p-value ({test_type}): {p_val_sim:.4f}")
+        interpretation.append(f"P-значение симуляции ({test_type}): {p_val_sim:.4f}")
 
         if test_type == 'two-sided':
             if p_val_sim < 0.25:
-                interpretation.append("-> P-value < 0.25 achieved with two-sided test!")
-                interpretation.append("-> There is a statistically significant difference between pages")
+                interpretation.append("-> Достигнуто p-значение < 0.25 для двустороннего теста!")
+                interpretation.append("-> Между страницами есть статистически значимая разница")
             else:
-                interpretation.append("-> No statistically significant difference detected")
+                interpretation.append("-> Статистически значимая разница не обнаружена")
         else:
             if p_val_sim > 0.05:
-                interpretation.append("-> Fail to reject null hypothesis")
-                interpretation.append("-> New page is NOT significantly better than old page")
+                interpretation.append("-> Не удаётся отвергнуть нулевую гипотезу")
+                interpretation.append("-> Новая страница НЕ значимо лучше старой")
             else:
-                interpretation.append("-> Reject null hypothesis")
-                interpretation.append("-> New page shows significant improvement")
+                interpretation.append("-> Отвергаем нулевую гипотезу")
+                interpretation.append("-> Новая страница показывает значимое улучшение")
 
     if z_test:
         p_val_z = z_test['p_value']
@@ -214,21 +214,21 @@ def get_interpretation() -> str:
         critical_value = z_test['critical_value']
         test_type = z_test.get('test_type', 'one-sided')
 
-        interpretation.append(f"\nZ-test p-value ({test_type}): {p_val_z:.4f}")
-        interpretation.append(f"Z-score: {z_score:.4f} (critical: {critical_value:.4f})")
+        interpretation.append(f"\nP-значение Z-теста ({test_type}): {p_val_z:.4f}")
+        interpretation.append(f"Z-оценка: {z_score:.4f} (критическое: {critical_value:.4f})")
 
         if test_type == 'two-sided':
             if p_val_z < 0.25:
-                interpretation.append("-> P-value < 0.25 achieved with two-sided test!")
-                interpretation.append("-> Statistically significant difference detected")
+                interpretation.append("-> Достигнуто p-значение < 0.25 для двустороннего теста!")
+                interpretation.append("-> Обнаружена статистически значимая разница")
             else:
-                interpretation.append("-> No statistically significant difference")
+                interpretation.append("-> Статистически значимая разница отсутствует")
         else:
             if z_score < critical_value and p_val_z > 0.05:
-                interpretation.append("-> Fail to reject null hypothesis")
-                interpretation.append("-> No statistically significant difference")
+                interpretation.append("-> Не удаётся отвергнуть нулевую гипотезу")
+                interpretation.append("-> Статистически значимая разница отсутствует")
             else:
-                interpretation.append("-> Statistically significant result detected")
+                interpretation.append("-> Обнаружен статистически значимый результат")
 
     return "\n".join(interpretation)
 

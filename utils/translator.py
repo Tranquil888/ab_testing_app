@@ -6,7 +6,7 @@
 Текущий язык хранится в модульной переменной _current_language.
 """
 
-_current_language = 'en'
+_current_language = 'ru'
 
 TRANSLATIONS = {
     'en': {
@@ -227,6 +227,43 @@ TRANSLATIONS = {
         # Data preview window
         'preview_title': 'Data Preview',
         'preview_close': 'Close',
+
+        # Additional UI elements
+        'label_test_type': 'Test Type:',
+        'radio_one_sided': 'One-sided (new > old)',
+        'radio_two_sided': 'Two-sided (any difference)',
+        'btn_compare_both': 'Compare Both',
+
+        # Status and dialog messages
+        'msg_country_data_merged': 'Country data loaded and merged',
+        'msg_failed_load_country_data': 'Failed to load country data:\n{}',
+        'status_country_data_loaded': 'Country data loaded successfully',
+        'status_data_cleaned_successfully': 'Data cleaned successfully',
+        'status_error_loading_data': 'Error loading data',
+        'msg_invalid_iterations': 'Invalid number of iterations',
+        'status_running_both_tests': 'Running both test types for comparison...',
+        'status_test_comparison_complete': 'Test comparison complete',
+        'msg_data_structure_error': 'Data structure error: Missing required column {}. Please check your data format.',
+        'status_invalid_data_structure': 'Error: Invalid data structure',
+        'status_error_during_simulation': 'Error during simulation',
+        'status_error_during_ztest': 'Error during Z-test',
+        'status_error_during_comparison': 'Error during test comparison',
+        'status_error_calc_stats': 'Error calculating statistics',
+        'status_error_creating_plot': 'Error creating plot',
+        'msg_simulation_failed': 'Simulation failed: {}',
+        'msg_ztest_failed': 'Z-test failed: {}',
+        'msg_comparison_failed': 'Test comparison failed: {}',
+        'msg_calc_stats_error': 'Error calculating statistics: {}',
+        'msg_create_plot_error': 'Error creating comparison plot: {}',
+        'msg_run_simulation_first': 'Please run simulation first',
+        'msg_two_sided_not_achieved': 'Two-sided tests did not achieve p-value < 0.25.',
+        'msg_run_tests_for_recommendations': 'Run statistical tests to get recommendations',
+        'prob_observation_small_diff': 'Observation: The difference between conversion rates is very small.',
+        'prob_observation_need_test': 'Statistical testing is needed to determine significance.',
+        'data_info_format': 'Dataset Format: {}',
+        'data_info_column_mapping_header': 'Column Mapping:',
+        'quit_title': 'Quit',
+        'quit_message': 'Do you want to quit?',
     },
     'ru': {
         # Window and Menu
@@ -446,6 +483,43 @@ TRANSLATIONS = {
         # Data preview window
         'preview_title': 'Предпросмотр данных',
         'preview_close': 'Закрыть',
+
+        # Additional UI elements
+        'label_test_type': 'Тип теста:',
+        'radio_one_sided': 'Односторонний (новая > старая)',
+        'radio_two_sided': 'Двусторонний (любая разница)',
+        'btn_compare_both': 'Сравнить оба',
+
+        # Status and dialog messages
+        'msg_country_data_merged': 'Данные о странах загружены и объединены',
+        'msg_failed_load_country_data': 'Не удалось загрузить данные о странах:\n{}',
+        'status_country_data_loaded': 'Данные о странах успешно загружены',
+        'status_data_cleaned_successfully': 'Данные успешно очищены',
+        'status_error_loading_data': 'Ошибка загрузки данных',
+        'msg_invalid_iterations': 'Неверное число итераций',
+        'status_running_both_tests': 'Запуск обоих типов тестов для сравнения...',
+        'status_test_comparison_complete': 'Сравнение тестов завершено',
+        'msg_data_structure_error': 'Ошибка структуры данных: отсутствует обязательный столбец {}. Проверьте формат данных.',
+        'status_invalid_data_structure': 'Ошибка: неверная структура данных',
+        'status_error_during_simulation': 'Ошибка во время симуляции',
+        'status_error_during_ztest': 'Ошибка во время Z-теста',
+        'status_error_during_comparison': 'Ошибка во время сравнения тестов',
+        'status_error_calc_stats': 'Ошибка расчёта статистики',
+        'status_error_creating_plot': 'Ошибка создания графика',
+        'msg_simulation_failed': 'Симуляция не удалась: {}',
+        'msg_ztest_failed': 'Z-тест не удался: {}',
+        'msg_comparison_failed': 'Сравнение тестов не удалось: {}',
+        'msg_calc_stats_error': 'Ошибка при расчёте статистики: {}',
+        'msg_create_plot_error': 'Ошибка при создании графика сравнения: {}',
+        'msg_run_simulation_first': 'Пожалуйста, сначала запустите симуляцию',
+        'msg_two_sided_not_achieved': 'Двусторонние тесты не достигли p-значения < 0.25.',
+        'msg_run_tests_for_recommendations': 'Запустите статистические тесты для получения рекомендаций',
+        'prob_observation_small_diff': 'Наблюдение: разница в показателях конверсии очень мала.',
+        'prob_observation_need_test': 'Для определения значимости требуется статистический тест.',
+        'data_info_format': 'Формат набора данных: {}',
+        'data_info_column_mapping_header': 'Сопоставление столбцов:',
+        'quit_title': 'Выход',
+        'quit_message': 'Вы хотите выйти?',
     },
 }
 

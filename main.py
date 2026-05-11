@@ -22,13 +22,13 @@ def main():
         main_window.build_app()
         main_window.run()
     except ImportError as e:
-        print("Error: Missing required dependencies.")
-        print("Please install the required packages by running:")
+        print("Ошибка: отсутствуют необходимые зависимости.")
+        print("Установите требуемые пакеты командой:")
         print("pip install -r requirements.txt")
-        print(f"\nSpecific error: {e}")
+        print(f"\nПодробности ошибки: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"An error occurred while starting the application: {e}")
+        print(f"Произошла ошибка при запуске приложения: {e}")
         sys.exit(1)
 
 

@@ -276,16 +276,18 @@ def create_ab_test_tab():
     test_type_frame = ttk.Frame(control_frame)
     test_type_frame.grid(row=0, column=0, columnspan=4, sticky=tk.W, padx=5, pady=5)
 
-    ttk.Label(test_type_frame, text="Test Type:").pack(side=tk.LEFT, padx=(0, 10))
+    ttk.Label(test_type_frame, text=translator.t('label_test_type')).pack(side=tk.LEFT, padx=(0, 10))
     test_type_var = tk.StringVar(value="one-sided")
     UI['test_type_var'] = test_type_var
     ttk.Radiobutton(
-        test_type_frame, text="One-sided (new > old)", variable=test_type_var, value="one-sided"
+        test_type_frame, text=translator.t('radio_one_sided'), variable=test_type_var, value="one-sided"
     ).pack(side=tk.LEFT, padx=5)
     ttk.Radiobutton(
-        test_type_frame, text="Two-sided (any difference)", variable=test_type_var, value="two-sided"
+        test_type_frame, text=translator.t('radio_two_sided'), variable=test_type_var, value="two-sided"
     ).pack(side=tk.LEFT, padx=5)
-    ttk.Button(test_type_frame, text="Compare Both", command=run_both_tests_threaded).pack(side=tk.LEFT, padx=20)
+    ttk.Button(test_type_frame, text=translator.t('btn_compare_both'), command=run_both_tests_threaded).pack(
+        side=tk.LEFT, padx=20
+    )
 
     ttk.Label(control_frame, text=translator.t('simulation_iterations')).grid(row=1, column=0, sticky=tk.W, padx=5)
     iterations_var = tk.StringVar(value="10000")
@@ -390,41 +392,43 @@ def load_data():
             update_status(translator.t('status_data_loaded', len(data_processor.get_df())))
         else:
             messagebox.showerror(
-                "Error", "Failed to load data:\n" + "\n".join(data_processor.get_validation_errors())
+                translator.t('error'),
+                translator.t('msg_failed_to_load_data', "\n".join(data_processor.get_validation_errors())),
             )
-            update_status("Error loading data")
+            update_status(translator.t('status_error_loading_data'))
 
 
 def load_country_data():
     """Загрузить файл данных о странах."""
     filename = filedialog.askopenfilename(
-        title="Load Country Data",
-        filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+        title=translator.t('load_country_data'),
+        filetypes=[(translator.t('csv_files'), "*.csv"), (translator.t('all_files'), "*.*")],
     )
 
     if filename:
         if data_processor.load_country_data(filename):
-            update_status("Country data loaded successfully")
-            messagebox.showinfo("Success", "Country data loaded and merged")
+            update_status(translator.t('status_country_data_loaded'))
+            messagebox.showinfo(translator.t('success'), translator.t('msg_country_data_merged'))
         else:
             messagebox.showerror(
-                "Error", "Failed to load country data:\n" + "\n".join(data_processor.get_validation_errors())
+                translator.t('error'),
+                translator.t('msg_failed_load_country_data', "\n".join(data_processor.get_validation_errors())),
             )
 
 
 def clean_data():
     """Очистить загруженные данные."""
     if not data_processor.has_raw_data():
-        messagebox.showwarning("Warning", "Please load data first")
+        messagebox.showwarning(translator.t('warning'), translator.t('msg_load_data_first'))
         return
 
     success, message = data_processor.clean_data()
     if success:
         update_data_info()
-        update_status("Data cleaned successfully")
-        messagebox.showinfo("Success", message)
+        update_status(translator.t('status_data_cleaned_successfully'))
+        messagebox.showinfo(translator.t('success'), message)
     else:
-        messagebox.showerror("Error", message)
+        messagebox.showerror(translator.t('error'), message)
 
 
 def update_data_info():
@@ -440,9 +444,9 @@ def update_data_info():
     text += f"{translator.t('data_info_columns', ', '.join(info['columns']))}\n\n"
 
     if info.get('detected_format'):
-        text += f"Dataset Format: {info['detected_format'].upper()}\n"
+        text += f"{translator.t('data_info_format', info['detected_format'].upper())}\n"
         if info.get('column_mapping'):
-            text += "Column Mapping:\n"
+            text += f"{translator.t('data_info_column_mapping_header')}\n"
             for standard_col, actual_col in info['column_mapping'].items():
                 text += f"  {standard_col} -> {actual_col}\n"
         text += "\n"
@@ -496,20 +500,18 @@ def calculate_probability_stats():
         text += f"{translator.t('prob_stats_difference')}: {conversion_diff:.6f}\n\n"
 
         if abs(conversion_diff) < 0.001:
-            text += "Observation: The difference between conversion rates is very small.\n"
-            text += "Statistical testing is needed to determine significance."
+            text += f"{translator.t('prob_observation_small_diff')}\n"
+            text += translator.t('prob_observation_need_test')
 
         UI['prob_stats_text'].delete(1.0, tk.END)
         UI['prob_stats_text'].insert(tk.END, text)
 
     except KeyError as e:
-        error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
-        messagebox.showerror(translator.t('error'), error_msg)
-        update_status("Error: Invalid data structure")
+        messagebox.showerror(translator.t('error'), translator.t('msg_data_structure_error', str(e)))
+        update_status(translator.t('status_invalid_data_structure'))
     except Exception as e:
-        error_msg = f"Error calculating statistics: {str(e)}"
-        messagebox.showerror(translator.t('error'), error_msg)
-        update_status("Error calculating statistics")
+        messagebox.showerror(translator.t('error'), translator.t('msg_calc_stats_error', str(e)))
+        update_status(translator.t('status_error_calc_stats'))
 
 
 def run_simulation_threaded():
@@ -521,7 +523,7 @@ def run_simulation_threaded():
     try:
         iterations = int(UI['iterations_var'].get())
     except ValueError:
-        messagebox.showerror(translator.t('error'), "Invalid number of iterations")
+        messagebox.showerror(translator.t('error'), translator.t('msg_invalid_iterations'))
         return
 
     UI['progress_var'].set(0)
@@ -534,13 +536,13 @@ def run_simulation_threaded():
             results = ab_test_analyzer.run_simulation(iterations, test_type)
             root.after(0, display_simulation_results, results)
         except KeyError as e:
-            error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+            error_msg = translator.t('msg_data_structure_error', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error: Invalid data structure")
+            root.after(0, update_status, translator.t('status_invalid_data_structure'))
         except Exception as e:
-            error_msg = f"Simulation failed: {str(e)}"
+            error_msg = translator.t('msg_simulation_failed', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error during simulation")
+            root.after(0, update_status, translator.t('status_error_during_simulation'))
         finally:
             root.after(0, UI['progress_var'].set, 100)
             root.after(0, update_status, translator.t('status_simulation_complete'))
@@ -563,13 +565,13 @@ def run_z_test_threaded():
             results = ab_test_analyzer.run_z_test(test_type)
             root.after(0, display_z_test_results, results)
         except KeyError as e:
-            error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+            error_msg = translator.t('msg_data_structure_error', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error: Invalid data structure")
+            root.after(0, update_status, translator.t('status_invalid_data_structure'))
         except Exception as e:
-            error_msg = f"Z-test failed: {str(e)}"
+            error_msg = translator.t('msg_ztest_failed', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error during Z-test")
+            root.after(0, update_status, translator.t('status_error_during_ztest'))
         finally:
             root.after(0, update_status, translator.t('status_ztest_complete'))
 
@@ -585,11 +587,11 @@ def run_both_tests_threaded():
     try:
         iterations = int(UI['iterations_var'].get())
     except ValueError:
-        messagebox.showerror(translator.t('error'), "Invalid number of iterations")
+        messagebox.showerror(translator.t('error'), translator.t('msg_invalid_iterations'))
         return
 
     UI['progress_var'].set(0)
-    update_status("Running both test types for comparison...")
+    update_status(translator.t('status_running_both_tests'))
     root = UI['root']
 
     def worker():
@@ -597,16 +599,16 @@ def run_both_tests_threaded():
             results = ab_test_analyzer.run_both_test_types(iterations)
             root.after(0, display_both_test_results, results)
         except KeyError as e:
-            error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
+            error_msg = translator.t('msg_data_structure_error', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error: Invalid data structure")
+            root.after(0, update_status, translator.t('status_invalid_data_structure'))
         except Exception as e:
-            error_msg = f"Test comparison failed: {str(e)}"
+            error_msg = translator.t('msg_comparison_failed', str(e))
             root.after(0, messagebox.showerror, translator.t('error'), error_msg)
-            root.after(0, update_status, "Error during test comparison")
+            root.after(0, update_status, translator.t('status_error_during_comparison'))
         finally:
             root.after(0, UI['progress_var'].set, 100)
-            root.after(0, update_status, "Test comparison complete")
+            root.after(0, update_status, translator.t('status_test_comparison_complete'))
 
     threading.Thread(target=worker, daemon=True).start()
 
@@ -693,7 +695,7 @@ def display_both_test_results(results):
         text += f"{translator.t('success_message', '0.25')}\n"
         text += f"{translator.t('statistically_significant_difference')}\n\n"
     else:
-        text += "Two-sided tests did not achieve p-value < 0.25.\n\n"
+        text += f"{translator.t('msg_two_sided_not_achieved')}\n\n"
 
     text += f"{translator.t('interpretation_title')}\n"
     text += "-" * 20 + "\n"
@@ -711,7 +713,7 @@ def show_simulation_plot():
     """Показать гистограмму симуляции."""
     sim_results = ab_test_analyzer.get_simulation_results()
     if sim_results is None:
-        messagebox.showwarning(translator.t('warning'), "Please run simulation first")
+        messagebox.showwarning(translator.t('warning'), translator.t('msg_run_simulation_first'))
         return
 
     plot_frame = UI['plot_frame']
@@ -737,13 +739,11 @@ def show_comparison_plot():
         canvas = plot_manager.create_conversion_comparison_chart(plot_frame, stats)
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
     except KeyError as e:
-        error_msg = f"Data structure error: Missing required column {str(e)}. Please check your data format."
-        messagebox.showerror(translator.t('error'), error_msg)
-        update_status("Error: Invalid data structure")
+        messagebox.showerror(translator.t('error'), translator.t('msg_data_structure_error', str(e)))
+        update_status(translator.t('status_invalid_data_structure'))
     except Exception as e:
-        error_msg = f"Error creating comparison plot: {str(e)}"
-        messagebox.showerror(translator.t('error'), error_msg)
-        update_status("Error creating plot")
+        messagebox.showerror(translator.t('error'), translator.t('msg_create_plot_error', str(e)))
+        update_status(translator.t('status_error_creating_plot'))
 
 
 def save_current_plot():
@@ -761,7 +761,7 @@ def save_current_plot():
     if filename:
         if 'simulation' in plot_manager.FIGURES:
             plot_manager.save_plot('simulation', filename)
-            messagebox.showinfo(translator.t('success'), f"Plot saved to {filename}")
+            messagebox.showinfo(translator.t('success'), translator.t('msg_plot_saved', filename))
         else:
             messagebox.showwarning(translator.t('warning'), translator.t('msg_no_plot_to_save'))
 
@@ -831,7 +831,7 @@ def generate_report():
             lift = (treatment_rate - control_rate) / control_rate
             text += f"- {translator.t('report_potential_lift', lift)}\n"
     else:
-        text += "- Run statistical tests to get recommendations\n"
+        text += f"- {translator.t('msg_run_tests_for_recommendations')}\n"
 
     UI['results_text'].delete(1.0, tk.END)
     UI['results_text'].insert(tk.END, text)
@@ -921,7 +921,7 @@ def update_status(message):
 
 def on_closing():
     """Обработать закрытие приложения."""
-    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+    if messagebox.askokcancel(translator.t('quit_title'), translator.t('quit_message')):
         plot_manager.clear_all_plots()
         UI['root'].destroy()
 
