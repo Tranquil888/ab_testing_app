@@ -1,148 +1,156 @@
-# A/B Testing Desktop Application
+# Настольное приложение для A/B тестирования
 
-A comprehensive desktop application for analyzing A/B test results using statistical methods and interactive visualizations.
+Комплексное настольное приложение для анализа результатов A/B тестов с использованием статистических методов и интерактивных визуализаций.
 
-## Features
+Реализовано в процедурном стиле без использования ООП.
 
-- **Data Management**: Load, validate, and clean A/B test datasets
-- **Probability Analysis**: Calculate conversion rates and basic statistics
-- **Statistical Testing**: Monte Carlo simulation and z-test for hypothesis testing
-- **Interactive Visualizations**: Histograms, comparison charts, and time series plots
-- **Comprehensive Reporting**: Generate detailed analysis reports with recommendations
-- **Export Capabilities**: Save results to CSV and plots to PNG/PDF
-- **Multi-language Support**: Complete English and Russian interface translation
+## Возможности
 
-## Installation
+- **Управление данными**: загрузка, валидация и очистка наборов данных A/B тестов
+- **Вероятностный анализ**: расчёт показателей конверсии и базовой статистики
+- **Статистические тесты**: симуляция Монте-Карло и z-тест для проверки гипотез
+- **Интерактивные визуализации**: гистограммы, столбчатые диаграммы сравнения и временные ряды
+- **Подробные отчёты**: формирование детальных отчётов с рекомендациями
+- **Экспорт**: сохранение результатов в CSV и графиков в PNG/PDF
+- **Многоязычность**: полный перевод интерфейса на английский и русский языки
 
-1. Clone or download this repository
-2. Install required dependencies:
+## Установка
+
+1. Клонируйте или скачайте репозиторий
+2. Установите необходимые зависимости:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+## Использование
 
-### Starting the Application
+### Запуск приложения
 
 ```bash
 python main.py
 ```
 
-### Workflow
+### Рабочий процесс
 
-1. **Load Data**: 
-   - Click "File" → "Load Data" or use Ctrl+O
-   - Select your CSV file containing A/B test data
-   - Required columns: `user_id`, `group`, `landing_page`, `converted`
+1. **Загрузка данных**:
+   - Нажмите «Файл» → «Загрузить данные» или используйте сочетание Ctrl+O
+   - Выберите CSV-файл с данными A/B теста
+   - Обязательные столбцы: `user_id`, `group`, `landing_page`, `converted`
 
-2. **Clean Data**:
-   - Click "Clean Data" to remove misaligned rows and duplicates
-   - Review data information in the Data tab
+2. **Очистка данных**:
+   - Нажмите «Очистить данные», чтобы удалить несоответствующие строки и дубликаты
+   - Проверьте сведения о данных во вкладке «Данные»
 
-3. **Run Analysis**:
-   - **Probability Tab**: Calculate basic conversion statistics
-   - **A/B Test Tab**: Run statistical tests (simulation and z-test)
-   - **Visualizations Tab**: View interactive charts and plots
-   - **Results Tab**: Generate comprehensive reports
+3. **Запуск анализа**:
+   - **Вкладка «Вероятности»**: расчёт базовых показателей конверсии
+   - **Вкладка «A/B тест»**: запуск статистических тестов (симуляция и z-тест)
+   - **Вкладка «Визуализации»**: просмотр интерактивных графиков
+   - **Вкладка «Результаты»**: формирование подробных отчётов
 
-4. **Export Results**:
-   - Generate reports in the Results tab
-   - Export data to CSV
-   - Save plots as PNG or PDF
+4. **Экспорт результатов**:
+   - Сформируйте отчёт во вкладке «Результаты»
+   - Экспортируйте данные в CSV
+   - Сохраните графики в PNG или PDF
 
-5. **Language Switching**:
-   - Click "Language" → "Switch to Russian" to change to Russian interface
-   - Click "Language" → "Switch to English" to change back to English
-   
+5. **Переключение языка**:
+   - Нажмите «Язык» → «Переключить на русский», чтобы перейти на русский интерфейс
+   - Нажмите «Язык» → «Переключить на английский», чтобы вернуться к английскому
 
-## Data Format
+## Формат данных
 
-Your CSV file should contain the following columns:
+CSV-файл должен содержать следующие столбцы:
 
-- `user_id`: Unique identifier for each user
-- `group`: Either 'control' or 'treatment'
-- `landing_page`: Either 'old_page' or 'new_page'
-- `converted`: 0 for no conversion, 1 for conversion
-- `timestamp`: Date and time of the interaction (optional, for time analysis)
+- `user_id`: уникальный идентификатор пользователя
+- `group`: значение `control` или `treatment`
+- `landing_page`: значение `old_page` или `new_page`
+- `converted`: 0 — конверсии не было, 1 — конверсия произошла
+- `timestamp`: дата и время взаимодействия (необязательно, для анализа по времени)
 
-Optional country data file:
-- `user_id`: User identifier
-- `country`: Country code (e.g., 'US', 'UK', 'CA')
+Дополнительный файл с данными о странах:
 
-## Statistical Methods
+- `user_id`: идентификатор пользователя
+- `country`: код страны (например, `US`, `UK`, `CA`)
 
-### Monte Carlo Simulation
-- Simulates 10,000 iterations under the null hypothesis
-- Calculates p-value based on distribution of differences
-- One-sided test: H₀: p_old - p_new ≥ 0, H₁: p_old - p_new < 0
+## Статистические методы
 
-### Z-Test for Proportions
-- Uses statsmodels for statistical testing
-- One-sided test comparing conversion rates
-- Provides z-score and p-value
+### Симуляция Монте-Карло
 
-### Interpretation Guidelines
-- p-value < 0.05: Statistically significant result
-- p-value ≥ 0.05: Fail to reject null hypothesis
-- Consider practical significance alongside statistical significance
+- 10 000 итераций при нулевой гипотезе
+- Расчёт p-значения по распределению разностей
+- Односторонний тест: H₀: p_old − p_new ≥ 0, H₁: p_old − p_new < 0
 
-## Application Structure
+### Z-тест для пропорций
+
+- Собственная реализация z-теста для разности пропорций
+- Односторонний тест, сравнивающий показатели конверсии
+- Возвращает z-статистику и p-значение
+
+### Рекомендации по интерпретации
+
+- p-значение < 0.05: результат статистически значим
+- p-значение ≥ 0.05: не удаётся отвергнуть нулевую гипотезу
+- Учитывайте практическую значимость наравне со статистической
+
+## Структура приложения
 
 ```
 ab_testing_app/
-├── main.py                 # Application entry point
-├── requirements.txt         # Python dependencies
+├── main.py                  # точка входа приложения
+├── requirements.txt          # зависимости Python
 ├── gui/
 │   ├── __init__.py
-│   └── main_window.py      # Main GUI interface
+│   └── main_window.py       # графический интерфейс (процедурный стиль)
 ├── analysis/
 │   ├── __init__.py
-│   ├── data_processor.py   # Data loading and cleaning
-│   └── ab_test_analyzer.py # Statistical analysis
+│   ├── data_processor.py    # загрузка и очистка данных
+│   └── ab_test_analyzer.py  # статистический анализ
 ├── visualization/
 │   ├── __init__.py
-│   └── plot_manager.py     # Matplotlib integration
+│   └── plot_manager.py      # интеграция с matplotlib
 └── utils/
-    └── __init__.py
+    ├── __init__.py
+    ├── column_mapper.py     # сопоставление столбцов
+    └── translator.py        # переводы интерфейса
 ```
 
-## Example Workflow
+## Пример рабочего процесса
 
-1. Load your A/B test data file
-2. Clean the data to remove inconsistencies
-3. Review probability statistics
-4. Run A/B test simulation (10,000 iterations)
-5. Run z-test for additional validation
-6. View visualizations to understand results
-7. Generate comprehensive report
-8. Export results for documentation
+1. Загрузите файл с данными A/B теста
+2. Очистите данные от несоответствий
+3. Просмотрите вероятностную статистику
+4. Запустите симуляцию A/B теста (10 000 итераций)
+5. Запустите z-тест для дополнительной проверки
+6. Изучите визуализации для понимания результатов
+7. Сформируйте подробный отчёт
+8. Экспортируйте результаты для документирования
 
-## Troubleshooting
+## Устранение неполадок
 
-### Common Issues
+### Частые проблемы
 
-1. **"Missing required columns"**: Ensure your CSV contains `user_id`, `group`, `landing_page`, `converted`
-2. **"No data loaded"**: Load and clean data before running analysis
-3. **Performance issues**: Large datasets may take time for simulation
+1. **«Missing required columns»**: убедитесь, что CSV содержит столбцы `user_id`, `group`, `landing_page`, `converted`
+2. **«No data loaded»**: загрузите и очистите данные перед запуском анализа
+3. **Проблемы с производительностью**: на больших наборах данных симуляция может занять время
 
-### Tips
+### Советы
 
-- Use the data preview to verify your data format
-- Check the status bar for progress updates
-- Save plots before closing the application
-- Generate reports after completing all analyses
+- Используйте предпросмотр данных для проверки формата
+- Следите за статусной строкой, чтобы видеть прогресс
+- Сохраняйте графики до закрытия приложения
+- Формируйте отчёты после завершения всех анализов
 
-## Dependencies
+## Зависимости
 
-- `pandas`: Data manipulation and analysis
-- `numpy`: Numerical computations
-- `matplotlib`: Data visualization
-- `tkinter`: GUI framework (built-in with Python)
+- `pandas`: работа с данными
+- `numpy`: численные вычисления
+- `matplotlib`: визуализация
+- `tkinter`: графический интерфейс (входит в стандартную поставку Python)
 
-## License
+## Лицензия
 
-This application is provided for educational and research purposes.
+Приложение предоставляется в учебных и исследовательских целях.
 
-## Support
+## Поддержка
 
-For issues or questions, please refer to the documentation or check the error messages in the application status bar.
+По вопросам и при возникновении проблем обращайтесь к документации или сообщениям об ошибках в статусной строке приложения.

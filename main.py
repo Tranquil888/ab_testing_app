@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 """
-A/B Testing Desktop Application
-Main entry point for the application
+Настольное приложение для A/B тестирования.
+Точка входа в приложение.
 
-This application provides a comprehensive GUI for analyzing A/B test results
-with statistical methods and interactive visualizations.
+Приложение предоставляет графический интерфейс для анализа результатов
+A/B тестов с использованием статистических методов и интерактивных
+визуализаций. Реализовано в процедурном стиле без использования классов.
 """
 
-import sys
 import os
+import sys
 
-# Add the application directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from gui.main_window import MainWindow
+from gui import main_window
+
 
 def main():
-    """Main entry point for the application."""
+    """Главная точка входа в приложение."""
     try:
-        app = MainWindow()
-        app.run()
+        main_window.build_app()
+        main_window.run()
     except ImportError as e:
         print("Error: Missing required dependencies.")
         print("Please install the required packages by running:")
@@ -29,6 +30,7 @@ def main():
     except Exception as e:
         print(f"An error occurred while starting the application: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
